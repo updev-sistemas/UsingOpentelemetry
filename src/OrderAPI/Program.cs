@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using ProductAPI;
+using OrderAPI;
 using Services;
 using Services.Contracts;
+using Services.HttpClient;
+using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +23,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<PoCDbContext>(options => options.UseSqlServer("Server=host.docker.internal,1433;Database=poc_opentelemetry;User Id=sa;Password=LltF8Nx*yo;TrustServerCertificate=True;"));
 builder.Services.AddAutoMapper(typeof(ProductMapper), typeof(OrderMapper), typeof(OrderItemMapper), typeof(CustomerMapper));
 
-builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<IOrderRepository, OrderRepository>();
+
+builder.Services.AddRefitClient<ICustomerApi>()
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:7117"));
+
+builder.Services.AddRefitClient<IProductApi>()
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:7192"));
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracerProviderBuilder =>

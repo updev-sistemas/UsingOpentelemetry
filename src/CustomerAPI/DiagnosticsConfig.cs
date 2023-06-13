@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics.Metrics;
 using System.Diagnostics;
 
-namespace ProductAPI;
+namespace CustomerAPI;
 
 public class DiagnosticsConfig
 {
-    public const string ServiceName = "ProductAPI.WebApi";
+    public const string ServiceName = "CustomerAPI.WebApi";
     public static ActivitySource ActivitySource = new(ServiceName);
 
     public static Meter Meter = new(ServiceName);
-    public static Counter<long> RequestCounter = Meter.CreateCounter<long>("ProductAPI.request_counter");
+    public static Counter<long> RequestCounter = Meter.CreateCounter<long>("CustomerAPI.request_counter");
 }

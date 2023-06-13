@@ -3,10 +3,11 @@ using Database.Contexts;
 using Domain.Entities;
 using Domain.ValuesObjects;
 using Microsoft.EntityFrameworkCore;
+using Services.Contracts;
 
 namespace Services;
 
-public class ProductRepository
+public class ProductRepository : IProductRepository
 {
     private readonly PoCDbContext db;
     private readonly IMapper mapper;
@@ -43,7 +44,7 @@ public class ProductRepository
         if (product != null)
         {
             product.Code = productValueObject.Code;
-            product.Description = productValueObject.Description; 
+            product.Description = productValueObject.Description;
             product.Price = productValueObject.Price;
 
             product.UpdatedAt = DateTime.Now;

@@ -8,9 +8,9 @@ public class ProductModelConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
-        builder.ToTable("tb_products");
+        builder.ToTable("tb_products")
+            .HasKey(p => p.Id).HasName("id");
 
-        builder.Property(p => p.Id).HasColumnName("id");
         builder.Property(p => p.Code).HasColumnName("code").IsRequired();
         builder.Property(p => p.Description).HasColumnName("description").IsRequired();
         builder.Property(p => p.Price).HasColumnName("price").IsRequired();

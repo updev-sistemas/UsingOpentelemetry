@@ -1,6 +1,6 @@
 ﻿using Domain.ValuesObjects;
 
-namespace Services
+namespace Services.Contracts
 {
     public interface ICustomerRepository
     {

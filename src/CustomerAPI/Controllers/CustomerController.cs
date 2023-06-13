@@ -1,30 +1,36 @@
 using Domain.ValuesObjects;
 using Microsoft.AspNetCore.Mvc;
-using Services;
+using Newtonsoft.Json;
+using OpenTelemetry.Trace;
+using Services.Contracts;
+using System.Diagnostics;
 
-namespace CustomerAPI.Controllers
+namespace CustomerAPI.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class CustomerController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class CustomerController : ControllerBase
+    private readonly ILogger<CustomerController> logger;
+    private readonly ICustomerRepository repository;
+
+    public CustomerController(
+        ILogger<CustomerController> logger,
+        ICustomerRepository repository)
     {
-        private readonly ILogger<CustomerController> logger;
-        private readonly ICustomerRepository repository;
+        this.logger = logger;
+        this.repository = repository;
+    }
 
-        public CustomerController(
-            ILogger<CustomerController> logger,
-            ICustomerRepository repository)
+    [HttpGet]
+    [Route("/get-all-customers")]
+    public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync");
+        try
         {
-            this.logger = logger;
-            this.repository = repository;
-        }
-
-        [HttpGet]
-        [Route("/get-all-customers")]
-        public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
-        {
-            //using var activity = DiagnosticsConfig.ActivitySource.StartActivity("get-all-customers");
-            //DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(customerController)));
+            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(CustomerController)));
+            activity!.SetTag("GetAllAsync", $"Search all products from {page} with quantity {perPage}");
 
             if (!page.HasValue || page.HasValue && page.Value < 1)
             {
@@ -40,14 +46,24 @@ namespace CustomerAPI.Controllers
 
             return Ok(result);
         }
-
-
-        [HttpGet]
-        [Route("/get-by-id")]
-        public async Task<IActionResult> GetByIdAsync(long id)
+        catch (Exception ex)
         {
-            //using var activity = DiagnosticsConfig.ActivitySource.StartActivity("get-by-id");
-            //DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(customerController)));
+            activity!.RecordException(ex);
+
+            return BadRequest(ex.Message);
+        }
+    }
+
+
+    [HttpGet]
+    [Route("/get-by-id")]
+    public async Task<IActionResult> GetByIdAsync(long id)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync");
+        try
+        {
+            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(CustomerController)));
+            activity!.SetTag("GetByIdAsync", $"Search Customer By Id {id}");
 
             var result = await this.repository.FindByIdAsync(id, CancellationToken.None).ConfigureAwait(false);
 
@@ -58,13 +74,23 @@ namespace CustomerAPI.Controllers
 
             return Ok(result);
         }
-
-        [HttpGet]
-        [Route("/get-by-document")]
-        public async Task<IActionResult> GetByDocumentAsync(string target)
+        catch (Exception ex)
         {
-            //using var activity = DiagnosticsConfig.ActivitySource.StartActivity("get-by-code-or-ean");
-            //DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByCodeOrEanAsync)), new("Controller", nameof(customerController)));
+            activity!.RecordException(ex);
+
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Route("/get-by-document")]
+    public async Task<IActionResult> GetByDocumentAsync(string target)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByDocumentAsync");
+        try
+        {
+            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByDocumentAsync)), new("Controller", nameof(CustomerController)));
+            activity!.SetTag("GetByDocumentAsync", $"Search Customer By Document {target}");
 
             var result = await this.repository.FindByDocumentAsync(target, CancellationToken.None).ConfigureAwait(false);
 
@@ -75,13 +101,23 @@ namespace CustomerAPI.Controllers
 
             return Ok(result);
         }
-
-        [HttpPost]
-        [Route("/register-new-customer")]
-        public async Task<IActionResult> Registercustomer([FromBody] CustomerValueObject customerCreate)
+        catch (Exception ex)
         {
-            //using var activity = DiagnosticsConfig.ActivitySource.StartActivity("register-new-customer");
-            //DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Registercustomer)), new("Controller", nameof(customerController)));
+            activity!.RecordException(ex);
+
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost]
+    [Route("/register-new-customer")]
+    public async Task<IActionResult> Registercustomer([FromBody] CustomerValueObject customerCreate)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("Registercustomer");
+        try
+        {
+            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Registercustomer)), new("Controller", nameof(CustomerController)));
+            activity!.SetTag("Registercustomer", JsonConvert.SerializeObject(customerCreate));
 
             var customer = await this.repository.RegisterAsync(customerCreate, CancellationToken.None).ConfigureAwait(false);
 
@@ -92,14 +128,24 @@ namespace CustomerAPI.Controllers
 
             return Ok(customer);
         }
-
-
-        [HttpPut]
-        [Route("/update-customer")]
-        public async Task<IActionResult> UpdateCustomer(long id, [FromBody] CustomerValueObject customerChange)
+        catch (Exception ex)
         {
-            //using var activity = DiagnosticsConfig.ActivitySource.StartActivity("update-customer");
-            //DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Updatecustomer)), new("Controller", nameof(customerController)));
+            activity!.RecordException(ex);
+
+            return BadRequest(ex.Message);
+        }
+    }
+
+
+    [HttpPut]
+    [Route("/update-customer")]
+    public async Task<IActionResult> UpdateCustomer(long id, [FromBody] CustomerValueObject customerChange)
+    {
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("UpdateCustomer");
+        try
+        {
+            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(UpdateCustomer)), new("Controller", nameof(CustomerController)));
+            activity!.SetTag("UpdateCustomer", $"Update Customer {id} with {JsonConvert.SerializeObject(customerChange)}");
 
             var customer = await this.repository.UpdateAsync(id, customerChange, CancellationToken.None).ConfigureAwait(false);
 
@@ -109,6 +155,12 @@ namespace CustomerAPI.Controllers
             }
 
             return Ok(customer);
+        }
+        catch (Exception ex)
+        {
+            activity!.RecordException(ex);
+
+            return BadRequest(ex.Message);
         }
     }
 }

@@ -1,13 +1,9 @@
-using Database.Contexts;
-using Domain.Mapper;
-using Domain.Mappers;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using ProductAPI;
-using Services;
-using Services.Contracts;
+using UsingOpentelemetry;
+// using UsingOpentelemetry.Database.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PoCDbContext>(options => options.UseSqlServer("Server=host.docker.internal,1433;Database=poc_opentelemetry;User Id=sa;Password=LltF8Nx*yo;TrustServerCertificate=True;"));
-builder.Services.AddAutoMapper(typeof(ProductMapper), typeof(OrderMapper), typeof(OrderItemMapper), typeof(CustomerMapper));
 
-builder.Services.AddTransient<IProductRepository, ProductRepository>();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracerProviderBuilder =>
@@ -49,6 +43,7 @@ builder.Services.AddOpenTelemetry()
             })
             .AddConsoleExporter()
             .AddOtlpExporter());
+
 
 var app = builder.Build();
 

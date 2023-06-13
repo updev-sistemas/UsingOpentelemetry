@@ -3,49 +3,59 @@ using Database.Contexts;
 using Domain.Entities;
 using Domain.ValuesObjects;
 using Microsoft.EntityFrameworkCore;
+using Services.Contracts;
+using Services.HttpClient;
 
 namespace Services;
 
-public class OrderRepository
+public class OrderRepository : IOrderRepository
 {
     private readonly PoCDbContext db;
     private readonly IMapper mapper;
+    private readonly IProductApi productApi;
+    private readonly ICustomerApi customerApi;
 
-    public OrderRepository(PoCDbContext dbContext, IMapper mapper)
+    public OrderRepository(
+        PoCDbContext dbContext, 
+        IMapper mapper,
+        IProductApi productApi,
+        ICustomerApi customerApi)
     {
         this.db = dbContext;
         this.mapper = mapper;
+        this.productApi = productApi;
+        this.customerApi = customerApi;
     }
 
     public async Task<OrderValueObject?> RegisterAsync(OrderValueObject order, CancellationToken cancellationToken)
     {
-        var orderToSave = mapper.Map<Order>(order);
-
         using var tx = await db.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            orderToSave.CustomerId = order.Customer!.Id;
-            orderToSave.CreatedAt = DateTime.Now;
-            orderToSave.UpdatedAt = DateTime.Now;
+            var orderToSave = mapper.Map<Order>(order);
+
+            orderToSave.Customer = null;
+            
+            var items = orderToSave.Items;
+            orderToSave.Items = null;
 
             db.Add(orderToSave);
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var item in order.Items!.ToArray())
+            foreach (var item in items!)
             {
-                var orderItemToSave = mapper.Map<OrderItem>(item);
+                item.Product = null;
+                item.Order = null;
+                item.OrderId = orderToSave.Id;
 
-                orderItemToSave.ProductId = item.Product!.Id;
-
-                orderItemToSave.OrderId = orderToSave.Id;
-                orderItemToSave.Order = orderToSave;
-
-                orderItemToSave.CreatedAt = DateTime.Now;
-                orderItemToSave.UpdatedAt = DateTime.Now;
-
-                db.Add(orderItemToSave);
+                db.Add(item);
             }
 
+            await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+            order.Id = orderToSave.Id;
 
             return mapper.Map<OrderValueObject>(order);
         }
@@ -54,7 +64,7 @@ public class OrderRepository
             _ = ex;
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
 
-            return default;
+            throw ex;
         }
     }
 
@@ -75,6 +85,57 @@ public class OrderRepository
         var result = this.mapper.Map<ICollection<OrderValueObject>>(dataResult);
 
         return result ?? Array.Empty<OrderValueObject>();
+    }
+
+    public async Task<OrderValueObject?> RegisterNewOrder(OrderValueObject order, CancellationToken cancellationToken)
+    {
+        CustomerValueObject? customer;
+
+        try
+        {
+            customer = await this.customerApi.GetByDocumentAsync(order!.Customer!.Document!).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _ = ex;
+            customer = default;
+        }
+
+        if (customer is null)
+        {
+            customer = await this.customerApi.RegisterCustomerAsync(order!.Customer!).ConfigureAwait(false);
+
+            if (customer == null)
+                throw new Exception("Não foi possível registrar o cliente.");
+        }
+
+        order.Customer = customer;
+        order.CreatedAt = DateTime.Now;
+        order.UpdatedAt = DateTime.Now;
+
+        foreach (var item in order!.Items!.ToArray())
+        {
+            var product = await this.productApi.GetByCodeAsync(item.Product!.Code!).ConfigureAwait(false);
+
+            if (product == null)
+                throw new Exception($"Não foi possível recuperar o Produto {item.Product!.Code} - {item.Product!.Description}.");
+
+            item.Product = product;
+            item.CreatedAt = DateTime.Now;
+            item.UpdatedAt = DateTime.Now;
+        }
+
+        var result = await this.RegisterAsync(order, cancellationToken).ConfigureAwait(false);
+
+        if (result == null)
+            return default;
+
+        var orderRegistered = await this.db.Orders.Where(o => o.Id == result.Id).Include(p => p.Items).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+        if (orderRegistered == null)
+            return default;
+
+        return mapper.Map<OrderValueObject>(orderRegistered);
     }
 
 }

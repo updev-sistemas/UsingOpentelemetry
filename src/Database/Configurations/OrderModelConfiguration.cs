@@ -8,9 +8,9 @@ public class OrderModelConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
     {
-        _ = builder.ToTable("tb_orders");
+        _ = builder.ToTable("tb_orders")
+            .HasKey(p => p.Id).HasName("id");
 
-        _ = builder.Property(p => p.Id).HasColumnName("id");
         _ = builder.Property(p => p.CustomerId).HasColumnName("customer_id").IsRequired();
         _ = builder.Property(p => p.Payment).HasColumnName("id_payment").IsRequired();
         _ = builder.Property(p => p.CreatedAt).HasColumnName("created_at");

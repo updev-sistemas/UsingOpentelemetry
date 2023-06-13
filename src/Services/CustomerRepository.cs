@@ -3,6 +3,7 @@ using Database.Contexts;
 using Domain.Entities;
 using Domain.ValuesObjects;
 using Microsoft.EntityFrameworkCore;
+using Services.Contracts;
 
 namespace Services;
 

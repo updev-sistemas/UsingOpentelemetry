@@ -8,9 +8,9 @@ public class CustomerModelConfiguration : IEntityTypeConfiguration<Customer>
 {
     public void Configure(EntityTypeBuilder<Customer> builder)
     {
-        builder.ToTable("tb_customers");
+        builder.ToTable("tb_customers")
+            .HasKey(p => p.Id).HasName("id");
 
-        builder.Property(p => p.Id).HasColumnName("id");
         builder.Property(p => p.Document).HasColumnName("document").IsRequired();
         builder.Property(p => p.Name).HasColumnName("name").IsRequired();
         builder.Property(p => p.Email).HasColumnName("email").IsRequired();

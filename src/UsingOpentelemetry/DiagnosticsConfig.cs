@@ -1,11 +1,11 @@
-﻿using System.Diagnostics.Metrics;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
-namespace ProductAPI;
+namespace UsingOpentelemetry;
 
-public class DiagnosticsConfig
+public static class DiagnosticsConfig
 {
-    public const string ServiceName = "ProductAPI.WebApi";
+    public const string ServiceName = "ProductAPI";
     public static ActivitySource ActivitySource = new(ServiceName);
 
     public static Meter Meter = new(ServiceName);
