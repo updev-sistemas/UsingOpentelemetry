@@ -121,6 +121,7 @@ public class OrderRepository : IOrderRepository
                 throw new Exception($"Não foi possível recuperar o Produto {item.Product!.Code} - {item.Product!.Description}.");
 
             item.Product = product;
+            
             item.CreatedAt = DateTime.Now;
             item.UpdatedAt = DateTime.Now;
         }

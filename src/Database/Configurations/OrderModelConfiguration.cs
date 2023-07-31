@@ -11,6 +11,7 @@ public class OrderModelConfiguration : IEntityTypeConfiguration<Order>
         _ = builder.ToTable("tb_orders")
             .HasKey(p => p.Id).HasName("id");
 
+        _ = builder.Property(p => p.Id).ValueGeneratedOnAdd();
         _ = builder.Property(p => p.CustomerId).HasColumnName("customer_id").IsRequired();
         _ = builder.Property(p => p.Payment).HasColumnName("id_payment").IsRequired();
         _ = builder.Property(p => p.CreatedAt).HasColumnName("created_at");

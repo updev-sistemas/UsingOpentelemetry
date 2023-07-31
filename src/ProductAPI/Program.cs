@@ -1,7 +1,9 @@
 using Database.Contexts;
 using Domain.Mapper;
 using Domain.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -29,8 +31,48 @@ builder.Services.AddOpenTelemetry()
             .AddSource(DiagnosticsConfig.ActivitySource.Name)
             .ConfigureResource(resource => resource
                 .AddService(DiagnosticsConfig.ServiceName))
-            .AddHttpClientInstrumentation()
+            .AddHttpClientInstrumentation(options =>
+            {
+                options.EnrichWithHttpWebResponse = (activity, httpWebResponse) =>
+                {
+                    using var reader = new StreamReader(httpWebResponse.GetResponseStream());
+                    var content = reader.ReadToEnd();
+                    activity.SetTag("Http.Response.Body", content ?? "#### Nenhum Data ####");
+                };
+                // Note: Called for all runtimes.
+                options.EnrichWithException = (activity, exception) =>
+                {
+                    activity.SetTag("Http.Response.StackTrace", exception.StackTrace);
+                };
+            })
             .AddAspNetCoreInstrumentation()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.Enrich = (activity, eventName, rawObject) =>
+                {
+                    if (rawObject is SqlCommand cmd)
+                    {
+                        activity.SetTag("db.CommandText", eventName);
+                        activity.SetTag("db.Query", cmd.CommandText);
+
+                        if (cmd.Parameters.Count > 0)
+                        {
+                            foreach (var param in cmd.Parameters)
+                            {
+                                try
+                                {
+                                    var obj = (Microsoft.Data.SqlClient.SqlParameter)param;
+                                    activity.SetTag($"db.Query.Parameter.{obj.ParameterName}", obj.Value);
+                                }
+                                catch
+                                {
+                                    _ = param;
+                                }
+                            }
+                        }
+                    }
+                };
+            })
             .AddOtlpExporter(o =>
             {
                 o.Endpoint = new Uri("http://localhost:4317");
