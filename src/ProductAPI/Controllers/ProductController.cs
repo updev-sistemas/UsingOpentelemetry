@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OpenTelemetry.Trace;
 using Services.Contracts;
+using System.Diagnostics;
 
 namespace ProductAPI.Controllers;
 
@@ -23,7 +24,7 @@ public class ProductController : ControllerBase
     [Route("/get-all-products")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(ProductController)));
@@ -56,7 +57,7 @@ public class ProductController : ControllerBase
     [Route("/get-by-id")]
     public async Task<IActionResult> GetByIdAsync(long id)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(ProductController)));
@@ -83,7 +84,7 @@ public class ProductController : ControllerBase
     [Route("/get-by-code")]
     public async Task<IActionResult> GetByCodeAsync(string target)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByCodeAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByCodeAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByCodeAsync)), new("Controller", nameof(ProductController)));

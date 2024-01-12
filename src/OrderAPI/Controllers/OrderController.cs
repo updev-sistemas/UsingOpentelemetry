@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OpenTelemetry.Trace;
 using Services.Contracts;
+using System.Diagnostics;
 
 namespace OrderAPI.Controllers;
 
@@ -23,7 +24,7 @@ public class OrderController : ControllerBase
     [Route("/get-all-orders")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(OrderController)));
@@ -56,7 +57,7 @@ public class OrderController : ControllerBase
     [Route("/register-order")]
     public async Task<IActionResult> RegisterNewOrderAsync([FromBody] OrderValueObject orderToRegister)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RegisterNewOrderAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RegisterNewOrderAsync", ActivityKind.Consumer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(RegisterNewOrderAsync)), new("Controller", nameof(OrderController)));

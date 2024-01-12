@@ -26,7 +26,7 @@ public class CustomerController : ControllerBase
     [Route("/get-all-customers")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(CustomerController)));
@@ -59,7 +59,7 @@ public class CustomerController : ControllerBase
     [Route("/get-by-id")]
     public async Task<IActionResult> GetByIdAsync(long id)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(CustomerController)));
@@ -86,7 +86,7 @@ public class CustomerController : ControllerBase
     [Route("/get-by-document")]
     public async Task<IActionResult> GetByDocumentAsync(string target)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByDocumentAsync");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByDocumentAsync", ActivityKind.Producer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByDocumentAsync)), new("Controller", nameof(CustomerController)));
@@ -113,7 +113,7 @@ public class CustomerController : ControllerBase
     [Route("/register-new-customer")]
     public async Task<IActionResult> Registercustomer([FromBody] CustomerValueObject customerCreate)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("Registercustomer");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("Registercustomer", ActivityKind.Consumer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Registercustomer)), new("Controller", nameof(CustomerController)));
@@ -141,7 +141,7 @@ public class CustomerController : ControllerBase
     [Route("/update-customer")]
     public async Task<IActionResult> UpdateCustomer(long id, [FromBody] CustomerValueObject customerChange)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("UpdateCustomer");
+        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("UpdateCustomer", ActivityKind.Consumer);
         try
         {
             DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(UpdateCustomer)), new("Controller", nameof(CustomerController)));
