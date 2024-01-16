@@ -24,10 +24,10 @@ public class OrderController : ControllerBase
     [Route("/get-all-orders")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(OrderController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(OrderController)));
             activity!.SetTag("GetAllAsync", $"Search all products from {page} with quantity {perPage}");
 
             if (!page.HasValue || page.HasValue && page.Value < 1)
@@ -57,10 +57,10 @@ public class OrderController : ControllerBase
     [Route("/register-order")]
     public async Task<IActionResult> RegisterNewOrderAsync([FromBody] OrderValueObject orderToRegister)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("RegisterNewOrderAsync", ActivityKind.Consumer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("RegisterNewOrderAsync", ActivityKind.Consumer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(RegisterNewOrderAsync)), new("Controller", nameof(OrderController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(RegisterNewOrderAsync)), new("Controller", nameof(OrderController)));
             activity!.SetTag("RegisterNewOrderAsync", JsonConvert.SerializeObject(orderToRegister));
 
             var result = await this.repository.RegisterNewOrder(orderToRegister, CancellationToken.None).ConfigureAwait(false);

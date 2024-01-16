@@ -1,29 +1,27 @@
 using Database.Contexts;
 using Domain.Mapper;
 using Domain.Mappers;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using ProductAPI;
-using Serilog;
-using Serilog.Events;
 using Services;
 using Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-LocalDynatrace.InitOpenTelemetry(builder.Services);
+var dynatraceSection = builder.Configuration.GetSection("Dynatrace");
+string dynatraceUrl = dynatraceSection["Url"] ?? string.Empty;
+string dynatraceApiToken = dynatraceSection["ApiToken"] ?? string.Empty;
+string dynatraceIngestUrl = dynatraceSection["IngestUrl"] ?? string.Empty;
+string connectionString = builder.Configuration.GetConnectionString("DB") ?? string.Empty;
 
-builder.Host.UseSerilog();
-builder.Host.UseSerilog((ctx, lc) =>
-{
-    lc.WriteTo.Dynatrace(accessToken: "dt0c01.43JMCNAKPPIKKK3UJBGDMO44.YGOCC6FCB5TXRUE6SURZFNMTCIPUE3EPVOD5ZIXMUGBPJD7GWV67OOAYU4WYWYUV", ingestUrl: "https://xap74085.live.dynatrace.com/api/v2/logs/ingest");
-    lc.WriteTo.Console(LogEventLevel.Debug);
-});
+ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
+ArgumentNullException.ThrowIfNull(dynatraceApiToken, nameof(dynatraceApiToken));
+ArgumentNullException.ThrowIfNull(dynatraceUrl, nameof(dynatraceUrl));
+ArgumentNullException.ThrowIfNull(dynatraceIngestUrl, nameof(dynatraceIngestUrl));
+
+// Add services to the container.
+LocalDynatrace.InitOpenTelemetry(builder.Services, dynatraceUrl, dynatraceApiToken);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -26,10 +26,10 @@ public class CustomerController : ControllerBase
     [Route("/get-all-customers")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(CustomerController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(CustomerController)));
             activity!.SetTag("GetAllAsync", $"Search all products from {page} with quantity {perPage}");
 
             if (!page.HasValue || page.HasValue && page.Value < 1)
@@ -59,10 +59,10 @@ public class CustomerController : ControllerBase
     [Route("/get-by-id")]
     public async Task<IActionResult> GetByIdAsync(long id)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(CustomerController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(CustomerController)));
             activity!.SetTag("GetByIdAsync", $"Search Customer By Id {id}");
 
             var result = await this.repository.FindByIdAsync(id, CancellationToken.None).ConfigureAwait(false);
@@ -86,10 +86,10 @@ public class CustomerController : ControllerBase
     [Route("/get-by-document")]
     public async Task<IActionResult> GetByDocumentAsync(string target)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByDocumentAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetByDocumentAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByDocumentAsync)), new("Controller", nameof(CustomerController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByDocumentAsync)), new("Controller", nameof(CustomerController)));
             activity!.SetTag("GetByDocumentAsync", $"Search Customer By Document {target}");
 
             var result = await this.repository.FindByDocumentAsync(target, CancellationToken.None).ConfigureAwait(false);
@@ -113,10 +113,10 @@ public class CustomerController : ControllerBase
     [Route("/register-new-customer")]
     public async Task<IActionResult> Registercustomer([FromBody] CustomerValueObject customerCreate)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("Registercustomer", ActivityKind.Consumer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("Registercustomer", ActivityKind.Consumer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Registercustomer)), new("Controller", nameof(CustomerController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(Registercustomer)), new("Controller", nameof(CustomerController)));
             activity!.SetTag("Registercustomer", JsonConvert.SerializeObject(customerCreate));
 
             var customer = await this.repository.RegisterAsync(customerCreate, CancellationToken.None).ConfigureAwait(false);
@@ -141,10 +141,10 @@ public class CustomerController : ControllerBase
     [Route("/update-customer")]
     public async Task<IActionResult> UpdateCustomer(long id, [FromBody] CustomerValueObject customerChange)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("UpdateCustomer", ActivityKind.Consumer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("UpdateCustomer", ActivityKind.Consumer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(UpdateCustomer)), new("Controller", nameof(CustomerController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(UpdateCustomer)), new("Controller", nameof(CustomerController)));
             activity!.SetTag("UpdateCustomer", $"Update Customer {id} with {JsonConvert.SerializeObject(customerChange)}");
 
             var customer = await this.repository.UpdateAsync(id, customerChange, CancellationToken.None).ConfigureAwait(false);

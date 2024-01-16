@@ -10,14 +10,14 @@ namespace OrderAPI
 {
     public class LocalDynatrace
     {
-        public static string DT_API_URL = "https://xap74085.live.dynatrace.com/";
-        public static string DT_API_TOKEN = "dt0c01.43JMCNAKPPIKKK3UJBGDMO44.YGOCC6FCB5TXRUE6SURZFNMTCIPUE3EPVOD5ZIXMUGBPJD7GWV67OOAYU4WYWYUV";
+        // public static string DT_API_URL = "https://xap74085.live.dynatrace.com/";
+        // public static string DT_API_TOKEN = "dt0c01.43JMCNAKPPIKKK3UJBGDMO44.YGOCC6FCB5TXRUE6SURZFNMTCIPUE3EPVOD5ZIXMUGBPJD7GWV67OOAYU4WYWYUV";
 
         public const string activitySource = "Atlantico.PoC.WebApi";
         public static readonly ActivitySource MyActivitySource = new(activitySource);
         public static ILoggerFactory? loggerFactoryOT;
 
-        public static void InitOpenTelemetry(IServiceCollection services)
+        public static void InitOpenTelemetry(IServiceCollection services, string diApiUrl, string diApiToken)
         {
             List<KeyValuePair<string, object>> dt_metadata = new List<KeyValuePair<string, object>>();
             foreach (string name in new string[]
@@ -50,9 +50,9 @@ namespace OrderAPI
                         .AddSource(MyActivitySource.Name)
                         .AddOtlpExporter(options =>
                         {
-                            options.Endpoint = new Uri($"{DT_API_URL}/v2/traces");
+                            options.Endpoint = new Uri($"{diApiUrl}/v2/traces");
                             options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-                            options.Headers = $"Authorization=Api-Token {DT_API_TOKEN}";
+                            options.Headers = $"Authorization=Api-Token {diApiToken}";
                         });
                 })
                 .WithMetrics(builder => {
@@ -60,8 +60,8 @@ namespace OrderAPI
                         .AddMeter("my-meter")
                         .AddOtlpExporter((OtlpExporterOptions exporterOptions, MetricReaderOptions readerOptions) =>
                         {
-                            exporterOptions.Endpoint = new Uri($"{DT_API_URL}/v2/metrics");
-                            exporterOptions.Headers = $"Authorization=Api-Token {DT_API_TOKEN}";
+                            exporterOptions.Endpoint = new Uri($"{diApiUrl}/v2/metrics");
+                            exporterOptions.Headers = $"Authorization=Api-Token {diApiToken}";
                             exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
                             readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
                         });
@@ -74,8 +74,8 @@ namespace OrderAPI
                 builder
                     .AddOpenTelemetry(options => {
                         options.SetResourceBuilder(resourceBuilder).AddOtlpExporter(options => {
-                            options.Endpoint = new Uri($"{DT_API_URL}/v2/logs");
-                            options.Headers = $"Authorization=Api-Token {DT_API_TOKEN}";
+                            options.Endpoint = new Uri($"{diApiUrl}/v2/logs");
+                            options.Headers = $"Authorization=Api-Token {diApiToken}";
                             options.ExportProcessorType = OpenTelemetry.ExportProcessorType.Batch;
                             options.Protocol = OtlpExportProtocol.HttpProtobuf;
                         });

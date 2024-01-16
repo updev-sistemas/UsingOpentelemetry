@@ -24,10 +24,10 @@ public class ProductController : ControllerBase
     [Route("/get-all-products")]
     public async Task<IActionResult> GetAllAsync(int? page = 1, int? perPage = 10)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetAllAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(ProductController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetAllAsync)), new("Controller", nameof(ProductController)));
             activity!.SetTag("GetAllAsync", $"Search all products from {page} with quantity {perPage}");
 
             if (!page.HasValue || page.HasValue && page.Value < 1)
@@ -57,10 +57,10 @@ public class ProductController : ControllerBase
     [Route("/get-by-id")]
     public async Task<IActionResult> GetByIdAsync(long id)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetByIdAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(ProductController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByIdAsync)), new("Controller", nameof(ProductController)));
             activity!.SetTag("GetByIdAsync", $"Search Product ID {id}");
 
             var result = await this.repository.FindByIdAsync(id, CancellationToken.None).ConfigureAwait(false);
@@ -84,10 +84,10 @@ public class ProductController : ControllerBase
     [Route("/get-by-code")]
     public async Task<IActionResult> GetByCodeAsync(string target)
     {
-        using var activity = DiagnosticsConfig.ActivitySource.StartActivity("GetByCodeAsync", ActivityKind.Producer);
+        using var activity = LocalDynatrace.MyActivitySource.StartActivity("GetByCodeAsync", ActivityKind.Producer);
         try
         {
-            DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByCodeAsync)), new("Controller", nameof(ProductController)));
+            // DiagnosticsConfig.RequestCounter.Add(1, new("Action", nameof(GetByCodeAsync)), new("Controller", nameof(ProductController)));
             activity!.SetTag("GetByCodeAsync", $"Search Product Code {target}");
 
             var result = await this.repository.FindByCodeAsync(target, CancellationToken.None).ConfigureAwait(false);

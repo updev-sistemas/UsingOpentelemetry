@@ -2,11 +2,7 @@ using CustomerAPI;
 using Database.Contexts;
 using Domain.Mapper;
 using Domain.Mappers;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 using Services;
@@ -14,13 +10,24 @@ using Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var dynatraceSection = builder.Configuration.GetSection("Dynatrace");
+string dynatraceUrl = dynatraceSection["Url"] ?? string.Empty;
+string dynatraceApiToken = dynatraceSection["ApiToken"] ?? string.Empty;
+string dynatraceIngestUrl = dynatraceSection["IngestUrl"] ?? string.Empty;
+string connectionString = builder.Configuration.GetConnectionString("DB") ?? string.Empty;
+
+ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
+ArgumentNullException.ThrowIfNull(dynatraceApiToken, nameof(dynatraceApiToken));
+ArgumentNullException.ThrowIfNull(dynatraceUrl, nameof(dynatraceUrl));
+ArgumentNullException.ThrowIfNull(dynatraceIngestUrl, nameof(dynatraceIngestUrl));
+
 // Add services to the container.
-LocalDynatrace.InitOpenTelemetry(builder.Services);
+LocalDynatrace.InitOpenTelemetry(builder.Services, dynatraceUrl, dynatraceApiToken);
 
 builder.Host.UseSerilog();
 builder.Host.UseSerilog((ctx, lc) =>
 {
-    lc.WriteTo.Dynatrace(accessToken: "dt0c01.43JMCNAKPPIKKK3UJBGDMO44.YGOCC6FCB5TXRUE6SURZFNMTCIPUE3EPVOD5ZIXMUGBPJD7GWV67OOAYU4WYWYUV", ingestUrl: "https://xap74085.live.dynatrace.com/api/v2/logs/ingest");
+    lc.WriteTo.Dynatrace(accessToken: dynatraceApiToken, ingestUrl: dynatraceIngestUrl);
     lc.WriteTo.Console(LogEventLevel.Debug);
 });
 
@@ -29,7 +36,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<PoCDbContext>(options => options.UseSqlServer("Server=host.docker.internal,1433;Database=poc_opentelemetry;User Id=sa;Password=LltF8Nx*yo;TrustServerCertificate=True;"));
+builder.Services.AddDbContext<PoCDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddAutoMapper(typeof(ProductMapper), typeof(OrderMapper), typeof(OrderItemMapper), typeof(CustomerMapper));
 
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
