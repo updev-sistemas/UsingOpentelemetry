@@ -17,11 +17,15 @@ string dynatraceUrl = dynatraceSection["Url"] ?? string.Empty;
 string dynatraceApiToken = dynatraceSection["ApiToken"] ?? string.Empty;
 string dynatraceIngestUrl = dynatraceSection["IngestUrl"] ?? string.Empty;
 string connectionString = builder.Configuration.GetConnectionString("DB") ?? string.Empty;
+string customerApi = builder.Configuration.GetConnectionString("Product") ?? string.Empty;
+string productApi = builder.Configuration.GetConnectionString("Customer") ?? string.Empty;
 
 ArgumentNullException.ThrowIfNull(connectionString, nameof(connectionString));
 ArgumentNullException.ThrowIfNull(dynatraceApiToken, nameof(dynatraceApiToken));
 ArgumentNullException.ThrowIfNull(dynatraceUrl, nameof(dynatraceUrl));
 ArgumentNullException.ThrowIfNull(dynatraceIngestUrl, nameof(dynatraceIngestUrl));
+ArgumentNullException.ThrowIfNull(customerApi, nameof(customerApi));
+ArgumentNullException.ThrowIfNull(productApi, nameof(productApi));
 
 // Add services to the container.
 LocalDynatrace.InitOpenTelemetry(builder.Services, dynatraceUrl, dynatraceApiToken);
@@ -43,10 +47,10 @@ builder.Services.AddAutoMapper(typeof(ProductMapper), typeof(OrderMapper), typeo
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 
 builder.Services.AddRefitClient<ICustomerApi>()
-        .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:8547"));
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri(customerApi));
 
 builder.Services.AddRefitClient<IProductApi>()
-        .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:8546"));
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri(productApi));
 
 #region Jaeger with Opentelemetry
 //builder.Services.AddOpenTelemetry()
